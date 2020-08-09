@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Loading image</title>
+</head>
+<body>
+	<a href="{% url 'index' %}">Назад к списку</a>
+	<h1>Новое изображение</h1>
+	<form action="" id="upload_image_form" enctype="multipart/form-data" method="post">
+		{% csrf_token %}
+
+		{% for field in upload_image_form %}
+			<div class="form-group">
+				{% if field.errors %}
+					<div class="alert alert-danger">{{ field.errors }}</div>
+				{% endif %}
+
+				{{ field.label }}
+				{{ field }}
+			</div>
+		{% endfor %}
+		<input type="submit" id="upload_image_form_submit">
+	</form>
+</body>
+</html>

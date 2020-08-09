@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Index</title>
+</head>
+<body>
+	<h1>Список изображений</h1>
+	<div id="uploaded_image_list">
+		{% if images %}
+		{% else %}
+			Нет доступных изображений
+		{% endif %}
+	</div>
+	<a href="{% url 'loading_image' %}" id="upload_image_link">Добавить изображение</a>
+</body>
+</html>

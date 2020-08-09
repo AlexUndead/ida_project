@@ -1,3 +1,6 @@
 from django.db import models
 
-# Create your models here.
+
+class Image(models.Model):
+    """модель загруженных изображенний"""
+    path = models.ImageField(default='', upload_to='image')
