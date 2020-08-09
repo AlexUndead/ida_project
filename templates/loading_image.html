@@ -1,10 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<title>Loading image</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block content %}
 	<a href="{% url 'index' %}">Назад к списку</a>
 	<h1>Новое изображение</h1>
 	<form action="" id="upload_image_form" enctype="multipart/form-data" method="post">
@@ -22,5 +17,4 @@
 		{% endfor %}
 		<input type="submit" id="upload_image_form_submit">
 	</form>
-</body>
-</html>
+{% endblock %}
