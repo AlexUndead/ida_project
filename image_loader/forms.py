@@ -6,7 +6,13 @@ from .models import Image
 class UploadImageForm(ModelForm):
     """форма загрузки изображения"""
     path = forms.ImageField(
-        widget=forms.FileInput(attrs={'id': 'upload_image_file_input'})
+        label='Файл',
+        widget=forms.FileInput(
+            attrs={
+                'id': 'upload_image_file_input',
+                'class': 'form-control-file',
+            },
+        )
     )
 
     class Meta:

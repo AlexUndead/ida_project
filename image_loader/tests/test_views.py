@@ -2,6 +2,7 @@ import os
 import io
 from PIL import Image as PILImage
 from django.test import TestCase
+from django.conf import settings
 from image_loader.models import Image
 
 
@@ -35,14 +36,16 @@ class LoadingImagePageTest(TestCase):
 
     def test_redirects_after_POST(self):
         """переадресует после post"""
-        response = self.client.post(
-            '/loading_image/', 
-            data={'path': self._generate_photo_file()},
-            format='multipart'
-        )
-        new_image = Image.objects.first()
-        self.assertRedirects(response, f'/resize_image/{new_image.id}/')
-        os.remove(os.getcwd() + '/image/test.png')
+        try:
+            response = self.client.post(
+                '/loading_image/', 
+                data={'path': self._generate_photo_file()},
+                format='multipart'
+            )
+            new_image = Image.objects.first()
+            self.assertRedirects(response, f'/resize_image/{new_image.id}/')
+        finally:
+            os.remove(str(settings.BASE_DIR) + '/media/image/test.png')
 
     def test_for_invalid_input_without_file(self):
         """недопустимый ввод: пустое поле загрузки файла"""

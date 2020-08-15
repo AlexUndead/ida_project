@@ -1,4 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
-	<form action="" id="change_size_image_from"></form>
+	<form action="" id="change_size_image_form"></form>
+	<img src="{{ MEDIA_URL }}{{ image.path }}" id="uploaded_image"/>	
 {% endblock %}

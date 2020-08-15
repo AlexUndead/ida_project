@@ -11,10 +11,10 @@
 					<div class="alert alert-danger">{{ field.errors }}</div>
 				{% endif %}
 
-				{{ field.label }}
+				<label for="{{ field.name }}">{{ field.label }}</label>
 				{{ field }}
 			</div>
 		{% endfor %}
-		<input type="submit" id="upload_image_form_submit">
+		<button type="submit" id="upload_image_form_submit" class="btn btn-primary">Отправить</button>
 	</form>
 {% endblock %}
