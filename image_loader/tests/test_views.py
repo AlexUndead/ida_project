@@ -1,12 +1,10 @@
 import os
-import io
-from PIL import Image as PILImage
-from django.test import TestCase
 from django.conf import settings
 from image_loader.models import Image
+from .base import BaseTest
 
 
-class HomePageTest(TestCase):
+class HomePageTest(BaseTest):
     """тест домашней страницы"""
 
     def test_page_uses_index_template(self) -> None:
@@ -26,7 +24,7 @@ class HomePageTest(TestCase):
             self.assertContains(response, 'Нет доступных изображений')
 
 
-class LoadingImagePageTest(TestCase):
+class LoadingImagePageTest(BaseTest):
     """тест страницы загрузки изображения"""
     def test_page_uses_upload_image_template(self) -> None:
         """используется шаблон страницы загрузки изображения"""
@@ -34,20 +32,16 @@ class LoadingImagePageTest(TestCase):
         self.assertTemplateUsed(response, 'loading_image.html')
         self.assertContains(response, 'Новое изображение')
 
-    def test_redirects_after_POST(self):
+    def test_redirects_after_POST(self) -> None:
         """переадресует после post"""
         try:
-            response = self.client.post(
-                '/loading_image/', 
-                data={'path': self._generate_photo_file()},
-                format='multipart'
-            )
+            response = self._loading_image_throught_post()
             new_image = Image.objects.first()
             self.assertRedirects(response, f'/resize_image/{new_image.id}/')
         finally:
             os.remove(str(settings.BASE_DIR) + '/media/image/test.png')
 
-    def test_for_invalid_input_without_file(self):
+    def test_for_invalid_input_without_file(self) -> None:
         """недопустимый ввод: пустое поле загрузки файла"""
         response = self.client.post(
             '/loading_image/', 
@@ -55,20 +49,21 @@ class LoadingImagePageTest(TestCase):
         )
         self.assertContains(response, 'This field is required')
 
-    def _generate_photo_file(self) -> io.BytesIO:
-        """создание тесового файла"""
-        file = io.BytesIO()
-        image = PILImage.new('RGBA', size=(100, 100), color=(155, 0, 0))
-        image.save(file, 'png')
-        file.name = 'test.png'
-        file.seek(0)
-        return file
 
-
-class ResizeImagePageTest(TestCase):
+class ResizeImagePageTest(BaseTest):
     """тест страницы изменения размеров изображения"""
     def test_page_uses_resize_image_template(self) -> None:
         """используется шаблон страницы изменения размеров изображения"""
-        new_image = Image.objects.create(path='test_path')
+        new_image = Image.objects.create(image='test_path')
         response = self.client.get(f'/resize_image/{new_image.id}/')
         self.assertTemplateUsed(response, 'resize_image.html')
+
+    def test_succesful_image_resize(self):
+        """успешное изенение размеров изображения"""
+        self._loading_image_throught_post()
+        new_image = Image.objects.first()
+        response = self.client.post(
+            f'/resize_image/{new_image.id}',
+            data={'weight':100, 'height':100}
+        )
+        self.assertTrue(new_image.resized_image)

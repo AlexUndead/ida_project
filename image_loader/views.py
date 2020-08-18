@@ -1,19 +1,21 @@
 from django.views import View
-from django.shortcuts import render, redirect, get_object_or_404
+from django.conf import settings
 from django.http import HttpRequest, HttpResponse
-from .models import Image
+from django.shortcuts import render, redirect, get_object_or_404
+from .additional_class.image import BaseImage
+from .models import Image as ModelsImage
 from .forms import UploadImageForm
 
 
 class IndexView(View):
     """Индексная страница"""
     def get(self, request: HttpRequest) -> HttpResponse:
-        images = Image.objects.all()
+        images = ModelsImage.objects.all()
         return render(request, 'index.html', context={'images': images})
 
 
 class LoadingImageView(View):
-    """Страницы загрузки изображения"""
+    """Страница загрузки изображения"""
     def get(self, request: HttpRequest) -> HttpResponse:
         upload_image_form = UploadImageForm()
         return render(
@@ -35,7 +37,30 @@ class LoadingImageView(View):
 
 
 class ResizeImageView(View):
-    """Страницы изменения размеров изображения"""
+    """Страница изменения размеров изображения"""
     def get(self, request: HttpRequest, image_id: int) -> HttpResponse:
-        image = get_object_or_404(Image, pk=image_id)
+        image = get_object_or_404(ModelsImage, pk=image_id)
         return render(request, 'resize_image.html', context={'image': image})
+
+    def post(self, request: HttpRequest, image_id: int) -> HttpResponse:
+        image = get_object_or_404(ModelsImage, pk=image_id)
+        width = int(request.POST.get('width')) if request.POST.get('width') else 0
+        height = int(request.POST.get('height')) if request.POST.get('height') else 0
+        error_message = ''
+
+        try:
+            if width or height:
+                resized_image_name = BaseImage.resize_image(
+                    image_path=str(image.image),
+                    width=width, 
+                    height=height
+                )
+                if not image.resized_image:
+                    image.resized_image = 'image/' + resized_image_name
+                    image.save()
+            else:
+                error_message = 'Необходимо ввести хотя бы одно значение'
+        except Exception as error:
+            error_message = error
+        finally:
+            return render(request, 'resize_image.html', context={'image': image, 'error': error_message})

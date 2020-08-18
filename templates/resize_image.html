@@ -1,5 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
-	<form action="" id="change_size_image_form"></form>
-	<img src="{{ MEDIA_URL }}{{ image.path }}" id="uploaded_image"/>	
+	{% if error %}
+		<div>{{ error }}</div>
+	{% endif %}
+	<form action="" id="change_size_image_form" method="post">
+		{% csrf_token %}
+		<input type="number" value="" name="width" id="change_width_image_input"/>	
+		<input type="number" value="" name="height" id="change_height_image_input"/>	
+		<button type="submit" id="change_resize_form_submit" class="btn btn-primary">Отправить</button>
+	</form>
+	{% if image.resized_image %}
+		<img src="{{ MEDIA_URL }}{{ image.resized_image }}" id="uploaded_image"/>	
+	{% else %}
+		<img src="{{ MEDIA_URL }}{{ image.image }}" id="uploaded_image"/>	
+	{% endif %}
 {% endblock %}

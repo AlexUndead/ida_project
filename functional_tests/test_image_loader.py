@@ -42,3 +42,13 @@ class ImageLoaderTest(LiveServerTestCase):
         self.browser.find_element_by_id('change_size_image_form')
         uploaded_image = self.browser.find_element_by_id('uploaded_image')
         self.assertIn(TEST_IMAGE_NAME, uploaded_image.get_attribute('src'))
+
+        # Теперь пользователь решил изменить ширину изображения
+        self.browser.find_element_by_id('change_width_image_input').send_keys('400')
+        self.browser.find_element_by_id('change_resize_form_submit').click()
+
+        # Страница перезагрузилась и теперь у изображения ранее
+        # введенные размеры
+        uploaded_image = self.browser.find_element_by_id('uploaded_image')
+        self.assertEqual(uploaded_image.size['weight'], 400)
+        self.assertEqual(uploaded_image.size['height'], 400)
