@@ -10,8 +10,8 @@ from .forms import UploadImageForm
 class IndexView(View):
     """Индексная страница"""
     def get(self, request: HttpRequest) -> HttpResponse:
-        images = ImageModel.objects.all()
-        return render(request, 'index.html', context={'images': images})
+        upload_images = ImageModel.objects.all()
+        return render(request, 'index.html', context={'upload_images': upload_images})
 
 
 class LoadingImageView(View):

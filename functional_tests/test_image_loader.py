@@ -52,3 +52,9 @@ class ImageLoaderTest(LiveServerTestCase):
         uploaded_image = self.browser.find_element_by_id('uploaded_image')
         self.assertEqual(uploaded_image.size['width'], 400)
         self.assertEqual(uploaded_image.size['height'], 400)
+
+        # После успешного изменения размеров изображения, пользователю осталось
+        # только проверить что изображение появилось на главной странице
+        self.browser.get(self.live_server_url)
+        upload_image_list = self.browser.find_element_by_id('uploaded_image_list')
+        self.assertEqual(upload_image_list.text, 'image/' + TEST_IMAGE_NAME)

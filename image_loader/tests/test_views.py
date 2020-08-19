@@ -65,8 +65,16 @@ class ResizeImagePageTest(BaseTest):
             image_model = Image.objects.first()
             response = self.client.post(
                 f'/resize_image/{image_model.id}/',
-                data={'width':100, 'height':100}
+                data={'width':400, 'height':400}
             )
+            image_model.refresh_from_db()
             self.assertTrue(image_model.resized_image)
         finally:
             os.remove(settings.MEDIA_ROOT + '/image/test.png')
+
+    def test_list_upload_images(self) -> None:
+        """список успешно загруженных изображений"""
+        self._loading_image_throught_post()
+        model_image = Image.objects.first()
+        response = self.client.get('/')
+        self.assertContains(response, model_image.image)

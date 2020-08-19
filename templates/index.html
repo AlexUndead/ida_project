@@ -2,10 +2,14 @@
 {% block content %}
 	<h1>Список изображений</h1>
 	<div id="uploaded_image_list">
-		{% if images %}
+		{% if upload_images %}
+			{% for image in upload_images %}
+				<a href="{% url 'resize_image' image.id %}">{{ image.image }}</a></br>
+			{% endfor %}
 		{% else %}
 			Нет доступных изображений
 		{% endif %}
 	</div>
+	</br>
 	<a href="{% url 'loading_image' %}" id="upload_image_link">Добавить изображение</a>
 {% endblock %}

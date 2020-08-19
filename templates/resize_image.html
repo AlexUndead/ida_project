@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+	<a href="{% url 'index' %}">Назад к списку</a>
 	{% if error %}
 		<div>{{ error }}</div>
 	{% endif %}
