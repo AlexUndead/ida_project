@@ -41,13 +41,25 @@ class LoadingImagePageTest(BaseTest):
         finally:
             os.remove(settings.MEDIA_ROOT + '/image/test.png')
 
-    def test_for_invalid_input_without_file(self) -> None:
-        """недопустимый ввод: пустое поле загрузки файла"""
+    def test_succesful_image_upload(self) -> None:
+        """успешная загрузка картинки"""
         response = self.client.post(
-            '/loading_image/', 
-            format='multipart'
+            '/loading_image/',
+            data={'image': self._generate_photo_file()},
+            format='multipart',
         )
-        self.assertContains(response, 'This field is required')
+        image_model = Image.objects.first()
+        self.assertEqual(image_model.image, 'image/test.png')
+
+    def test_succesful_image_link_upload(self) -> None:
+        """успешная загрузка картинки с помощью ссылки"""
+        response = self.client.post(
+            '/loading_image/',
+            data={'link': 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png'},
+            format='multipart',
+        )
+        image_model = Image.objects.first()
+        self.assertEqual(image_model.image, 'image/googlelogo_color_272x92dp.png')
 
 
 class ResizeImagePageTest(BaseTest):

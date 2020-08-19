@@ -3,8 +3,11 @@ from selenium import webdriver
 from django.test import LiveServerTestCase
 from django.conf import settings
 
-TEST_IMAGE_PATH = "/functional_tests/image/"
-TEST_IMAGE_NAME = "2e2d97e2ce9059a06b285c5d7293d1a8a63ee836.jpg"
+TEST_IMAGE_PATH = '/functional_tests/image/'
+TEST_IMAGE_NAME = '2e2d97e2ce9059a06b285c5d7293d1a8a63ee836.jpg'
+TEST_IMAGE_RESIZED_NAME = '2e2d97e2ce9059a06b285c5d7293d1a8a63ee836_resized.jpg'
+TEST_LINK_IMAGE_PATH = 'https://www.google.com/images/branding/googlelogo/2x/'
+TEST_LINK_IMAGE_NAME = 'googlelogo_color_272x92dp.png'
 
 
 class ImageLoaderTest(LiveServerTestCase):
@@ -15,7 +18,6 @@ class ImageLoaderTest(LiveServerTestCase):
 
     def tearDown(self) -> None:
         '''демонтаж'''
-        os.remove(str(settings.BASE_DIR) + '/media/image/' + TEST_IMAGE_NAME)
         self.browser.quit()
 
     def test_loader_image(self) -> None:
@@ -58,3 +60,18 @@ class ImageLoaderTest(LiveServerTestCase):
         self.browser.get(self.live_server_url)
         upload_image_list = self.browser.find_element_by_id('uploaded_image_list')
         self.assertEqual(upload_image_list.text, 'image/' + TEST_IMAGE_NAME)
+
+        os.remove(settings.MEDIA_ROOT + '/image/' + TEST_IMAGE_NAME)
+        os.remove(settings.MEDIA_ROOT + '/image/' + TEST_IMAGE_RESIZED_NAME)
+
+    def test_loader_image_using_link(self) -> None:
+        """тест загрузки картинки с помощью ссылки"""
+        # Пользователь перешел сразу на страницы загрузки картинки
+        # и попытался ввести ссылку на страницу которая содержит изображение
+        self.browser.get(self.live_server_url + '/loading_image/')
+        upload_image_link_input = self.browser.find_element_by_id('upload_image_link_input')
+        upload_image_link_input.send_keys(TEST_LINK_IMAGE_PATH + TEST_LINK_IMAGE_NAME)
+        self.browser.find_element_by_id('upload_image_form_submit').click()
+
+        uploaded_image = self.browser.find_element_by_id('uploaded_image')
+        self.assertIn(TEST_LINK_IMAGE_NAME, uploaded_image.get_attribute('src'))
