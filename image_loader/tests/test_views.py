@@ -39,7 +39,7 @@ class LoadingImagePageTest(BaseTest):
             new_image = Image.objects.first()
             self.assertRedirects(response, f'/resize_image/{new_image.id}/')
         finally:
-            os.remove(str(settings.BASE_DIR) + '/media/image/test.png')
+            os.remove(settings.MEDIA_ROOT + '/image/test.png')
 
     def test_for_invalid_input_without_file(self) -> None:
         """недопустимый ввод: пустое поле загрузки файла"""
@@ -58,12 +58,15 @@ class ResizeImagePageTest(BaseTest):
         response = self.client.get(f'/resize_image/{new_image.id}/')
         self.assertTemplateUsed(response, 'resize_image.html')
 
-    def test_succesful_image_resize(self):
+    def test_succesful_image_resize(self) -> None:
         """успешное изенение размеров изображения"""
-        self._loading_image_throught_post()
-        new_image = Image.objects.first()
-        response = self.client.post(
-            f'/resize_image/{new_image.id}',
-            data={'weight':100, 'height':100}
-        )
-        self.assertTrue(new_image.resized_image)
+        try:
+            self._loading_image_throught_post()
+            image_model = Image.objects.first()
+            response = self.client.post(
+                f'/resize_image/{image_model.id}/',
+                data={'width':100, 'height':100}
+            )
+            self.assertTrue(image_model.resized_image)
+        finally:
+            os.remove(settings.MEDIA_ROOT + '/image/test.png')

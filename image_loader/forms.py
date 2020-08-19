@@ -6,6 +6,7 @@ from .models import Image
 class UploadImageForm(ModelForm):
     """форма загрузки изображения"""
     image = forms.ImageField(
+        required=True,
         label='Файл',
         widget=forms.FileInput(
             attrs={

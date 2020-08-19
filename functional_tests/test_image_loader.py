@@ -50,5 +50,5 @@ class ImageLoaderTest(LiveServerTestCase):
         # Страница перезагрузилась и теперь у изображения ранее
         # введенные размеры
         uploaded_image = self.browser.find_element_by_id('uploaded_image')
-        self.assertEqual(uploaded_image.size['weight'], 400)
+        self.assertEqual(uploaded_image.size['width'], 400)
         self.assertEqual(uploaded_image.size['height'], 400)
