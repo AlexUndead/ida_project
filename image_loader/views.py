@@ -25,10 +25,13 @@ class LoadingImageView(View):
         )
 
     def post(self, request: HttpRequest) -> HttpResponse:
-        upload_image_form = UploadImageForm(files=request.FILES)
+        upload_image_form = UploadImageForm(
+            data=request.POST,
+            files=request.FILES
+        )
         if upload_image_form.is_valid():
-            image = upload_image_form.save()
-            return redirect('resize_image', image.id)
+            image_model = upload_image_form.save()
+            return redirect('resize_image', image_model.id)
         return render(
             request,
             'loading_image.html',
@@ -50,8 +53,10 @@ class ResizeImageView(View):
 
         try:
             if width or height:
-                image = Image(image_model)        
-                if image.resize(width, height) and not image_model.resized_image:
+                image_path = (image_model.resized_image 
+                    if image_model.resized_image else image_model.image)
+                image = Image(str(image_path))
+                if image.resize(width, height): 
                     image_model.resized_image = image.resized_image_name
                     image_model.save()
             else:

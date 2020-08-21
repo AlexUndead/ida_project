@@ -56,10 +56,9 @@ class LoadingImagePageTest(BaseTest):
         response = self.client.post(
             '/loading_image/',
             data={'link': 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png'},
-            format='multipart',
         )
         image_model = Image.objects.first()
-        self.assertEqual(image_model.image, 'image/googlelogo_color_272x92dp.png')
+        self.assertEqual(str(image_model.image), 'image/googlelogo_color_272x92dp.png')
 
 
 class ResizeImagePageTest(BaseTest):
