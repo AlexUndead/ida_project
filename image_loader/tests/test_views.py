@@ -95,7 +95,7 @@ class ResizeImagePageTest(BaseTest):
             full_path_test_image_resize = settings.MEDIA_ROOT + '/image/test_resized.png' 
             if os.path.exists(full_path_test_image):
                 os.remove(full_path_test_image)
-            elif os.path.exists(full_path_test_image_resize):
+            if os.path.exists(full_path_test_image_resize):
                 os.remove(full_path_test_image_resize)
 
     def test_list_upload_images(self) -> None:

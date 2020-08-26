@@ -65,5 +65,8 @@ class ResizeImageFormTest(BaseTest):
             self.assertTrue(image_model.resized_image)
         finally:
             full_path_test_image = settings.MEDIA_ROOT +  '/image/test.png'
+            full_path_test_image_resize = settings.MEDIA_ROOT + '/image/test_resized.png' 
             if os.path.exists(full_path_test_image):
                 os.remove(full_path_test_image)
+            if os.path.exists(full_path_test_image_resize):
+                os.remove(full_path_test_image_resize)
