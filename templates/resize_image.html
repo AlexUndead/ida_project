@@ -12,11 +12,12 @@
 			{% endif %}
 			{% for field in resize_form %}
 				<div class="form-group">
-
 					<label for="{{ field.name }}">{{ field.label }}</label>
+					<br>
 					{{ field }}
 				</div>
 			{% endfor %}
+			<br>
 			<button type="submit" id="resize_image_form_submit" class="btn btn-primary">Отправить</button>
 		</form>
 		<br>

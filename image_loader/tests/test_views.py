@@ -1,8 +1,7 @@
-import os
-from django.conf import settings
-from .base import BaseTest
-from image_loader.additional_class.image import get_parts_image_path
 from image_loader.models import Image
+from image_loader.utils.image import get_parts_image_path
+from image_loader.utils.decorators import remove_image_after_test
+from .base import BaseTest
 
 
 class HomePageTest(BaseTest):
@@ -16,7 +15,7 @@ class HomePageTest(BaseTest):
 
     def test_correct_index_message_without_images(self) -> None:
         """
-        корректное сообщение на индексной странице 
+        корректное сообщение на индексной странице
         если нет загруженных картинок
         """
         first_uploaded_image = Image.objects.first()
@@ -33,42 +32,32 @@ class LoadingImagePageTest(BaseTest):
         self.assertTemplateUsed(response, 'loading_image.html')
         self.assertContains(response, 'Новое изображение')
 
-    def test_redirects_after_POST(self) -> None:
+    @remove_image_after_test(['test.png'])
+    def test_redirects_after_post(self) -> None:
         """переадресует после post"""
-        try:
-            response = self._loading_image_throught_post()
-            new_image = Image.objects.first()
-            self.assertRedirects(response, f'/resize_image/{new_image.id}/')
-        finally:
-            full_path_test_image = settings.MEDIA_ROOT +  '/image/test.png'
-            if os.path.exists(full_path_test_image):
-                os.remove(full_path_test_image)
+        response = self._loading_image_throught_post()
+        new_image = Image.objects.first()
+        self.assertRedirects(response, f'/resize_image/{new_image.id}/')
 
+    @remove_image_after_test(['test.png'])
     def test_succesful_image_upload(self) -> None:
         """успешная загрузка картинки"""
-        try:
-            response = self._loading_image_throught_post()
-            image_model = Image.objects.first()
-            self.assertEqual(image_model.image, 'image/test.png')
-        finally:
-            full_path_test_image = settings.MEDIA_ROOT +  '/image/test.png'
-            if os.path.exists(full_path_test_image):
-                os.remove(full_path_test_image)
+        self._loading_image_throught_post()
+        image_model = Image.objects.first()
+        self.assertEqual(image_model.image, 'image/test.png')
 
+    @remove_image_after_test([BaseTest.TEST_IMAGE_LINK_NAME])
     def test_succesful_image_link_upload(self) -> None:
         """успешная загрузка картинки с помощью ссылки"""
-        try:
-            response = self.client.post(
-                '/loading_image/',
-                data={'link': self.TEST_LINK_IMAGE},
-            )
-            _, name, format = get_parts_image_path(self.TEST_LINK_IMAGE)
-            image_model = Image.objects.first()
-            self.assertIn(name + '.' + format, str(image_model.image))
-        finally:
-            full_path_test_image = settings.MEDIA_ROOT + '/image/' + name + '.' + format 
-            if os.path.exists(full_path_test_image):
-                os.remove(full_path_test_image)
+        test_image_full_link = (self.TEST_IMAGE_LINK_PATH +
+                                self.TEST_IMAGE_LINK_NAME)
+        self.client.post(
+            '/loading_image/',
+            data={'link': test_image_full_link},
+        )
+        _, name, format = get_parts_image_path(test_image_full_link)
+        image_model = Image.objects.first()
+        self.assertIn(name + '.' + format, str(image_model.image))
 
 
 class ResizeImagePageTest(BaseTest):
@@ -79,33 +68,22 @@ class ResizeImagePageTest(BaseTest):
         response = self.client.get(f'/resize_image/{new_image.id}/')
         self.assertTemplateUsed(response, 'resize_image.html')
 
+    @remove_image_after_test(['test.png', 'test_resized.png'])
     def test_succesful_image_resize(self) -> None:
         """успешное изенение размеров изображения"""
-        try:
-            self._loading_image_throught_post()
-            image_model = Image.objects.first()
-            response = self.client.post(
-                f'/resize_image/{image_model.id}/',
-                data={'width':400, 'height':400}
-            )
-            image_model.refresh_from_db()
-            self.assertTrue(image_model.resized_image)
-        finally:
-            full_path_test_image = settings.MEDIA_ROOT +  '/image/test.png'
-            full_path_test_image_resize = settings.MEDIA_ROOT + '/image/test_resized.png' 
-            if os.path.exists(full_path_test_image):
-                os.remove(full_path_test_image)
-            if os.path.exists(full_path_test_image_resize):
-                os.remove(full_path_test_image_resize)
+        self._loading_image_throught_post()
+        image_model = Image.objects.first()
+        self.client.post(
+            f'/resize_image/{image_model.id}/',
+            data={'width': 400, 'height': 400}
+        )
+        image_model.refresh_from_db()
+        self.assertTrue(image_model.resized_image)
 
+    @remove_image_after_test(['test.png'])
     def test_list_upload_images(self) -> None:
         """список успешно загруженных изображений"""
-        try:
-            self._loading_image_throught_post()
-            model_image = Image.objects.first()
-            response = self.client.get('/')
-            self.assertContains(response, model_image.image)
-        finally:
-            full_path_test_image = settings.MEDIA_ROOT +  '/image/test.png'
-            if os.path.exists(full_path_test_image):
-                os.remove(full_path_test_image)
+        self._loading_image_throught_post()
+        model_image = Image.objects.first()
+        response = self.client.get('/')
+        self.assertContains(response, model_image.image)

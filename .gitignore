@@ -3,3 +3,4 @@ image/*
 media/*
 .env
 tasks.txt
+mydatabase

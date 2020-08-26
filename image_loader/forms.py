@@ -1,11 +1,11 @@
-from typing import Union
 from django import forms
 from django.core.exceptions import ValidationError
 from .models import Image as ImageModel
-from .additional_class.image import Image, get_remote_image
+from .utils.image import Image, ImageException, get_remote_image
 
 ALL_FIELDS_FILLED_ERROR = 'Выберите одно значение'
 EMPTY_ITEMS_ERROR = 'Необходимо заполнить хотя бы одно поле'
+RESIZE_IMAGE_ERROR = 'Не удалось изменить размеры изображения'
 
 
 class UploadImageForm(forms.Form):
@@ -20,6 +20,7 @@ class UploadImageForm(forms.Form):
             },
         )
     )
+
     link = forms.URLField(
         label='Ссылка',
         required=False,
@@ -31,29 +32,40 @@ class UploadImageForm(forms.Form):
         )
     )
 
-    def clean(self):
+    field_order = ['link', 'image']
+
+    def clean(self) -> None:
         """очистка данных из формы"""
         cleaned_data = super().clean()
-        link = cleaned_data['link']
-        image = cleaned_data['image']
+        for error in self.errors:
+            raise ValidationError(self.errors[error])
+        link = cleaned_data.get('link')
+        image = cleaned_data.get('image')
 
         if link and image:
             raise ValidationError(ALL_FIELDS_FILLED_ERROR)
-        elif not link and not image:
+        if not link and not image:
             raise ValidationError(EMPTY_ITEMS_ERROR)
+        if link:
+            try:
+                cleaned_data['image'] = get_remote_image(link)
+            except ImageException as error:
+                raise ValidationError(error)
 
-    def save(self):
+    def save(self) -> ImageModel:
         """сохранение данных из формы"""
         image = self.cleaned_data['image']
-        link = self.cleaned_data['link']
 
-        if link:
-            image = get_remote_image(link)
         return ImageModel.objects.create(image=image)
-         
+
 
 class ResizeImageForm(forms.Form):
     """форма изменения размеров изображенния"""
+    def __init__(self, *args, instance=None, **kwargs) -> None:
+        if instance:
+            self.instance = instance
+        super().__init__(*args, **kwargs)
+
     width = forms.DecimalField(
         label='Ширина',
         required=False,
@@ -64,7 +76,7 @@ class ResizeImageForm(forms.Form):
             },
         )
     )
-    
+
     height = forms.DecimalField(
         label='Высота',
         required=False,
@@ -75,33 +87,27 @@ class ResizeImageForm(forms.Form):
             },
         )
     )
-    
-    def __init__(self, instance=None, *args, **kwargs) -> None:
-        if instance:
-            self.instance = instance
-        super().__init__(*args, **kwargs)
 
-    def clean(self) -> Union[None, ValidationError]:
-        """
-        возвращать ошибку только если оба 
-        поля изменения изоброжения пусты
-        """
+    def clean(self) -> None:
+        """очистка данных из формы"""
         cleaned_data = super().clean()
-        width = cleaned_data['width']
-        height = cleaned_data['height']
+        for error in self.errors:
+            raise ValidationError(self.errors[error])
+        width = cleaned_data.get('width')
+        height = cleaned_data.get('height')
 
         if not width and not height:
             raise ValidationError(EMPTY_ITEMS_ERROR)
-
-    def save(self) -> None:
-        """сохранение данных из формы"""
-        width = self.cleaned_data['width']
-        height = self.cleaned_data['height']
         image_model = self.instance
-        path = str(image_model.resized_image 
-            if image_model.resized_image else image_model.image)
-        image = Image(path)
-        if image.resize(width, height): 
-            image_model.resized_image = image.resized_image_name
-            image_model.save()
-            return image_model
+        image = Image(image_model)
+        if image.resize(width, height):
+            cleaned_data['resized_image'] = image.resized_image_name
+        else:
+            raise ValidationError(RESIZE_IMAGE_ERROR)
+
+    def save(self) -> ImageModel:
+        """сохранение данных из формы"""
+        image_model = self.instance
+        image_model.resized_image = self.cleaned_data['resized_image']
+        image_model.save()
+        return image_model
