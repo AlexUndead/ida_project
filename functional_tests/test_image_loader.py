@@ -41,13 +41,13 @@ class ImageLoaderTest(LiveServerTestCase):
         # После успешного сохранения, пользователь попал на страницу
         # изменения размеров изображения. Так же на этой странице есть
         # ранее загруженное изображение        
-        self.browser.find_element_by_id('change_size_image_form')
+        self.browser.find_element_by_id('resize_image_form')
         uploaded_image = self.browser.find_element_by_id('uploaded_image')
         self.assertIn(TEST_IMAGE_NAME, uploaded_image.get_attribute('src'))
 
         # Теперь пользователь решил изменить ширину изображения
         self.browser.find_element_by_id('change_width_image_input').send_keys('400')
-        self.browser.find_element_by_id('change_resize_form_submit').click()
+        self.browser.find_element_by_id('resize_image_form_submit').click()
 
         # Страница перезагрузилась и теперь у изображения ранее
         # введенные размеры
@@ -75,3 +75,5 @@ class ImageLoaderTest(LiveServerTestCase):
 
         uploaded_image = self.browser.find_element_by_id('uploaded_image')
         self.assertIn(TEST_LINK_IMAGE_NAME, uploaded_image.get_attribute('src'))
+
+        os.remove(settings.MEDIA_ROOT + '/image/' + TEST_LINK_IMAGE_NAME)

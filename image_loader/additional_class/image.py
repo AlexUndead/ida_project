@@ -1,11 +1,13 @@
 import os
 import re
-from urllib.request import urlopen, urlretrieve
+import io
 from PIL import Image as PILImage
+from urllib.request import urlopen, urlretrieve
+from tempfile import NamedTemporaryFile
 from django.conf import settings
 from django.core.files import File
-from tempfile import NamedTemporaryFile
 from django.core.files import File
+
 
 class Image:
     """класс работы с изображением"""
@@ -24,27 +26,6 @@ class Image:
             return True
         except Exception as error:
             return False
-    
-    @staticmethod
-    def get_parts_image_path(image_path: str) -> tuple:
-        """получить путь, имя и формат изображения"""
-        pattern = re.compile('(.*)/(.*)\.(jpg|jpeg|png)', re.IGNORECASE)
-        coincidences, *_ = re.findall(pattern, image_path)
-
-        return coincidences
-
-    @staticmethod
-    def get_remote_image(url: str = '') -> File:
-        """получить удаленное изображение"""
-        temp_image = NamedTemporaryFile(dir=settings.MEDIA_ROOT + '/image/')
-        _, name, format = Image.get_parts_image_path(url)
-        remote_image = urlopen(url).read()
-        temp_image.write(remote_image)
-        temp_image.flush()
-        image = File(temp_image)
-        image.name = name + '.' + format
-
-        return image
 
     def _get_sizes(self, old_sizes: tuple, width: int, height: int) -> tuple:
         """получить пропорциональную ширину и высоту изображения"""
@@ -59,7 +40,7 @@ class Image:
         if image_path.rfind(self.resized_image_name_postfix) > 0:
             self.resized_image_name = image_path
         else:
-            path, name, format = Image.get_parts_image_path(image_path)
+            path, name, format = get_parts_image_path(image_path)
             self.resized_image_name = (path + '/' +
                 name + self.resized_image_name_postfix + '.' + format)
 
@@ -67,3 +48,37 @@ class Image:
 class ImageException(Exception):
     """базовый класс исключений класса Image"""
     pass
+
+
+    
+def get_parts_image_path(image_path: str) -> tuple:
+    """получить путь, имя и формат изображения"""
+    pattern = re.compile('(.*)/(.*)\.(jpg|jpeg|png)', re.IGNORECASE)
+    coincidences, *_ = re.findall(pattern, image_path)
+
+    return coincidences
+
+def generate_photo_file() -> io.BytesIO:
+    """создание тесового файла"""
+    file = io.BytesIO()
+    image = PILImage.new(
+        'RGBA',
+        size=(100, 100),
+        color=(155, 0, 0)
+    )
+    image.save(file, 'png')
+    file.name = 'test.png'
+    file.seek(0)
+    return file
+
+def get_remote_image(url: str = '') -> File:
+    """получить удаленное изображение"""
+    temp_image = NamedTemporaryFile(dir=settings.MEDIA_ROOT + '/image/')
+    _, name, format = get_parts_image_path(url)
+    remote_image = urlopen(url).read()
+    temp_image.write(remote_image)
+    temp_image.flush()
+    image = File(temp_image)
+    image.name = name + '.' + format
+
+    return image

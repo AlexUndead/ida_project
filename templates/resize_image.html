@@ -4,15 +4,26 @@
 	{% if error %}
 		<div>{{ error }}</div>
 	{% endif %}
-	<form action="" id="change_size_image_form" method="post">
-		{% csrf_token %}
-		<input type="number" value="" name="width" id="change_width_image_input"/>	
-		<input type="number" value="" name="height" id="change_height_image_input"/>	
-		<button type="submit" id="change_resize_form_submit" class="btn btn-primary">Отправить</button>
-	</form>
-	{% if image.resized_image %}
-		<img src="{{ MEDIA_URL }}{{ image.resized_image }}" id="uploaded_image"/>	
-	{% else %}
-		<img src="{{ MEDIA_URL }}{{ image.image }}" id="uploaded_image"/>	
-	{% endif %}
+	<div class="col-md-4">
+		<form action="" id="resize_image_form" class="form-signin" method="post">
+			{% csrf_token %}
+			{% if resize_form.non_field_errors %}
+				<div class="alert alert-danger">{{ resize_form.non_field_errors }}</div>
+			{% endif %}
+			{% for field in resize_form %}
+				<div class="form-group">
+
+					<label for="{{ field.name }}">{{ field.label }}</label>
+					{{ field }}
+				</div>
+			{% endfor %}
+			<button type="submit" id="resize_image_form_submit" class="btn btn-primary">Отправить</button>
+		</form>
+		<br>
+		{% if image.resized_image %}
+			<img src="{{ MEDIA_URL }}{{ image.resized_image }}" id="uploaded_image"/>
+		{% else %}
+			<img src="{{ MEDIA_URL }}{{ image.image }}" id="uploaded_image"/>
+		{% endif %}
+	</div>
 {% endblock %}

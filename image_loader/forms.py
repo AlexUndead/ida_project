@@ -1,7 +1,11 @@
+from typing import Union
 from django import forms
-from .models import Image as ImageModel
 from django.core.exceptions import ValidationError
-from .additional_class.image import Image
+from .models import Image as ImageModel
+from .additional_class.image import Image, get_remote_image
+
+ALL_FIELDS_FILLED_ERROR = 'Выберите одно значение'
+EMPTY_ITEMS_ERROR = 'Необходимо заполнить хотя бы одно поле'
 
 
 class UploadImageForm(forms.Form):
@@ -34,9 +38,9 @@ class UploadImageForm(forms.Form):
         image = cleaned_data['image']
 
         if link and image:
-            raise ValidationError('Выберите одно значение')
+            raise ValidationError(ALL_FIELDS_FILLED_ERROR)
         elif not link and not image:
-            raise ValidationError('Необходимо заполнить хотя бы одно поле')
+            raise ValidationError(EMPTY_ITEMS_ERROR)
 
     def save(self):
         """сохранение данных из формы"""
@@ -44,7 +48,60 @@ class UploadImageForm(forms.Form):
         link = self.cleaned_data['link']
 
         if link:
-            image = Image.get_remote_image(link)
-        new_image = ImageModel.objects.create(image=image)
+            image = get_remote_image(link)
+        return ImageModel.objects.create(image=image)
+         
 
-        return new_image
+class ResizeImageForm(forms.Form):
+    """форма изменения размеров изображенния"""
+    width = forms.DecimalField(
+        label='Ширина',
+        required=False,
+        widget=forms.NumberInput(
+            attrs={
+                'id': 'change_width_image_input',
+                'class': 'form-control-file',
+            },
+        )
+    )
+    
+    height = forms.DecimalField(
+        label='Высота',
+        required=False,
+        widget=forms.NumberInput(
+            attrs={
+                'id': 'change_height_image_input',
+                'class': 'form-control-file',
+            },
+        )
+    )
+    
+    def __init__(self, instance=None, *args, **kwargs) -> None:
+        if instance:
+            self.instance = instance
+        super().__init__(*args, **kwargs)
+
+    def clean(self) -> Union[None, ValidationError]:
+        """
+        возвращать ошибку только если оба 
+        поля изменения изоброжения пусты
+        """
+        cleaned_data = super().clean()
+        width = cleaned_data['width']
+        height = cleaned_data['height']
+
+        if not width and not height:
+            raise ValidationError(EMPTY_ITEMS_ERROR)
+
+    def save(self) -> None:
+        """сохранение данных из формы"""
+        width = self.cleaned_data['width']
+        height = self.cleaned_data['height']
+        image_model = self.instance
+        path = str(image_model.resized_image 
+            if image_model.resized_image else image_model.image)
+        image = Image(path)
+        if image.resize(width, height): 
+            image_model.resized_image = image.resized_image_name
+            image_model.save()
+            return image_model

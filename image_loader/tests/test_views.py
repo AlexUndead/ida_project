@@ -1,7 +1,8 @@
 import os
 from django.conf import settings
-from image_loader.models import Image
 from .base import BaseTest
+from image_loader.additional_class.image import get_parts_image_path
+from image_loader.models import Image
 
 
 class HomePageTest(BaseTest):
@@ -39,26 +40,35 @@ class LoadingImagePageTest(BaseTest):
             new_image = Image.objects.first()
             self.assertRedirects(response, f'/resize_image/{new_image.id}/')
         finally:
-            os.remove(settings.MEDIA_ROOT + '/image/test.png')
+            full_path_test_image = settings.MEDIA_ROOT +  '/image/test.png'
+            if os.path.exists(full_path_test_image):
+                os.remove(full_path_test_image)
 
     def test_succesful_image_upload(self) -> None:
         """успешная загрузка картинки"""
-        response = self.client.post(
-            '/loading_image/',
-            data={'image': self._generate_photo_file()},
-            format='multipart',
-        )
-        image_model = Image.objects.first()
-        self.assertEqual(image_model.image, 'image/test.png')
+        try:
+            response = self._loading_image_throught_post()
+            image_model = Image.objects.first()
+            self.assertEqual(image_model.image, 'image/test.png')
+        finally:
+            full_path_test_image = settings.MEDIA_ROOT +  '/image/test.png'
+            if os.path.exists(full_path_test_image):
+                os.remove(full_path_test_image)
 
     def test_succesful_image_link_upload(self) -> None:
         """успешная загрузка картинки с помощью ссылки"""
-        response = self.client.post(
-            '/loading_image/',
-            data={'link': 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png'},
-        )
-        image_model = Image.objects.first()
-        self.assertEqual(str(image_model.image), 'image/googlelogo_color_272x92dp.png')
+        try:
+            response = self.client.post(
+                '/loading_image/',
+                data={'link': self.TEST_LINK_IMAGE},
+            )
+            _, name, format = get_parts_image_path(self.TEST_LINK_IMAGE)
+            image_model = Image.objects.first()
+            self.assertIn(name + '.' + format, str(image_model.image))
+        finally:
+            full_path_test_image = settings.MEDIA_ROOT + '/image/' + name + '.' + format 
+            if os.path.exists(full_path_test_image):
+                os.remove(full_path_test_image)
 
 
 class ResizeImagePageTest(BaseTest):
@@ -81,11 +91,21 @@ class ResizeImagePageTest(BaseTest):
             image_model.refresh_from_db()
             self.assertTrue(image_model.resized_image)
         finally:
-            os.remove(settings.MEDIA_ROOT + '/image/test.png')
+            full_path_test_image = settings.MEDIA_ROOT +  '/image/test.png'
+            full_path_test_image_resize = settings.MEDIA_ROOT + '/image/test_resized.png' 
+            if os.path.exists(full_path_test_image):
+                os.remove(full_path_test_image)
+            elif os.path.exists(full_path_test_image_resize):
+                os.remove(full_path_test_image_resize)
 
     def test_list_upload_images(self) -> None:
         """список успешно загруженных изображений"""
-        self._loading_image_throught_post()
-        model_image = Image.objects.first()
-        response = self.client.get('/')
-        self.assertContains(response, model_image.image)
+        try:
+            self._loading_image_throught_post()
+            model_image = Image.objects.first()
+            response = self.client.get('/')
+            self.assertContains(response, model_image.image)
+        finally:
+            full_path_test_image = settings.MEDIA_ROOT +  '/image/test.png'
+            if os.path.exists(full_path_test_image):
+                os.remove(full_path_test_image)
