@@ -4,3 +4,4 @@ project/media/*
 project/.test.env
 project/tasks.txt
 project/mydatabase
+project/static
