@@ -98,11 +98,12 @@ class ResizeImageForm(forms.Form):
 
         if not width and not height:
             raise ValidationError(EMPTY_ITEMS_ERROR)
-        image_model = self.instance
-        image = Image(image_model)
-        if image.resize(width, height):
-            cleaned_data['resized_image'] = image.resized_image_name
-        else:
+        try:
+            image_model = self.instance
+            image = Image(image_model)
+            if image.resize(width, height):
+                cleaned_data['resized_image'] = image.resized_image_name
+        except Exception:
             raise ValidationError(RESIZE_IMAGE_ERROR)
 
     def save(self) -> ImageModel:

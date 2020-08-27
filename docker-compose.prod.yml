@@ -1,0 +1,25 @@
+version: '2'
+services:
+  ida_project-app:
+    build: ./docker/python
+    command: >
+      bash -c "yes | pip3 install -r /ida_project/requirements.txt &&
+      python manage.py migrate &&
+      python manage.py collectstatic --noinput &&
+      gunicorn ida_project.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - ./project:/ida_project
+    expose:
+      - 8000
+    env_file:
+      - ./project/.env
+  ida_project-web:
+    build: ./docker/nginx
+    volumes:
+      - ./project/static:/home/ida_project/staticfiles/
+      - ./project/media:/home/ida_project/media/
+    ports:
+      - "1337:80"
+    depends_on:
+      - ida_project-app
+

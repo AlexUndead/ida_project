@@ -1,6 +1,6 @@
 __pycache__/
-image/*
-media/*
-.env
-tasks.txt
-mydatabase
+project/image/*
+project/media/*
+project/.test.env
+project/tasks.txt
+project/mydatabase

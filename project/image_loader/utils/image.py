@@ -7,6 +7,8 @@ from django.conf import settings
 from django.core.files import File
 from image_loader.models import Image as ImageModel
 
+WRONG_FORMAT_STRING_ERROR = 'Неверный формат строки'
+
 
 class Image:
     """класс работы с изображением"""
@@ -35,7 +37,7 @@ class Image:
             resized_image.save(full_resized_image_path)
 
             return True
-        except Exception:
+        except IOError:
             return False
 
     def _get_sizes(self, old_sizes: tuple, width: int, height: int) -> tuple:
@@ -67,7 +69,7 @@ def get_parts_image_path(image_path: str) -> tuple:
     pattern = re.compile('(.*)/(.*)\.(jpg|jpeg|png)', re.IGNORECASE)
     coincidences = re.findall(pattern, image_path)
     if not coincidences:
-        raise ImageException('Неверный формат строки')
+        raise ImageException(WRONG_FORMAT_STRING_ERROR)
     pockets, *_ = re.findall(pattern, image_path)
 
     return pockets
