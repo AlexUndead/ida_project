@@ -70,7 +70,7 @@ def get_parts_image_path(image_path: str) -> tuple:
     coincidences = re.findall(pattern, image_path)
     if not coincidences:
         raise ImageException(WRONG_FORMAT_STRING_ERROR)
-    pockets, *_ = re.findall(pattern, image_path)
+    pockets, *_ = coincidences
 
     return pockets
 
