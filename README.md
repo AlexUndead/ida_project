@@ -11,7 +11,7 @@
 2. Запустить тестовый сервер с помощью команды docker-compose -f docker-compose.dev.yml up --build (приложение доступно на 8001 порту)
 3. Если нужен производственный сервер, запустить его с помощью следующей команды docker-compose -f docker-compose.prod.yml up --build (приложение доступно на 1337 порту)
 4. Команда для запуска функционнальных тестов python3 manage.py test functional_tests/ (команду необходимо запускать из папки проекта project)
-4. Команда для запуска модульных тестов docker exec -it 26176b6bebea python3 manage.py test image_loader/ (команду необходимо запускать из папки проекта project)
+4. Команда для запуска модульных тестов docker exec -it (CONTAINER_ID) python3 manage.py test image_loader/ (команду необходимо запускать из папки проекта project)
 
 
 Замечание по выполнению задания
