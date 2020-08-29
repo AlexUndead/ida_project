@@ -6,6 +6,7 @@ from .utils.image import Image, ImageException, get_remote_image
 ALL_FIELDS_FILLED_ERROR = 'Выберите одно значение'
 EMPTY_ITEMS_ERROR = 'Необходимо заполнить хотя бы одно поле'
 RESIZE_IMAGE_ERROR = 'Не удалось изменить размеры изображения'
+UPLOADING_IMAGE_ERROR = 'Не удалось загрузить изображение'
 
 
 class UploadImageForm(forms.Form):
@@ -49,8 +50,8 @@ class UploadImageForm(forms.Form):
         if link:
             try:
                 cleaned_data['image'] = get_remote_image(link)
-            except ImageException as error:
-                raise ValidationError(error)
+            except ImageException:
+                raise ValidationError(UPLOADING_IMAGE_ERROR)
 
     def save(self) -> ImageModel:
         """сохранение данных из формы"""
