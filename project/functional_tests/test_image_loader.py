@@ -1,6 +1,8 @@
 import os
+import socket
 from typing import Callable
 from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from django.test import LiveServerTestCase
 from django.conf import settings
 from image_loader.utils.decorators import remove_image_after_test
@@ -15,9 +17,14 @@ TEST_LINK_IMAGE_NAME = 'googlelogo_color_272x92dp.png'
 
 class ImageLoaderTest(LiveServerTestCase):
     """тест модуля загрузки изображений"""
+    host = 'app'
     def setUp(self) -> None:
         '''установка'''
-        self.browser = webdriver.Chrome(os.environ.get('WEBDRIWER_PATH', ''))
+        self.browser = webdriver.Remote(
+            command_executor="http://selenium:4444/wd/hub",
+            desired_capabilities=DesiredCapabilities.FIREFOX
+        )
+        #self.browser = webdriver.Chrome(os.environ.get('WEBDRIWER_PATH', '/var/www/html/Projects/selenium-drivers/chrome/80/chromedriver'))
 
     def tearDown(self) -> None:
         '''демонтаж'''
