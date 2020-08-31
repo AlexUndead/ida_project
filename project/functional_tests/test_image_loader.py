@@ -24,7 +24,6 @@ class ImageLoaderTest(LiveServerTestCase):
             command_executor="http://selenium:4444/wd/hub",
             desired_capabilities=DesiredCapabilities.FIREFOX
         )
-        #self.browser = webdriver.Chrome(os.environ.get('WEBDRIWER_PATH', '/var/www/html/Projects/selenium-drivers/chrome/80/chromedriver'))
 
     def tearDown(self) -> None:
         '''демонтаж'''
